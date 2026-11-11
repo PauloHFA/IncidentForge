@@ -1,0 +1,295 @@
+version: "1.0"
+failures:
+  # Database failures
+  - category: "Connection Leak"
+    name: "Database Connection Leak"
+    description: "Application fails to return database connections to the pool, leading to pool exhaustion"
+    applicable_technologies: ["PostgreSQL", "MySQL", "SQL Server", "Oracle", "HikariCP", "pgBouncer"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 10
+    max_duration_minutes: 120
+    tags: ["database", "resource-exhaustion"]
+
+  - category: "Deadlock"
+    name: "Database Deadlock"
+    description: "Circular wait condition between transactions causes deadlock, requiring victim selection and rollback"
+    applicable_technologies: ["PostgreSQL", "MySQL", "SQL Server", "Oracle"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 5
+    max_duration_minutes: 60
+    tags: ["database", "concurrency"]
+
+  - category: "Split-brain"
+    name: "Database Split-brain"
+    description: "Network partition causes multiple primaries in a replication cluster, leading to data divergence"
+    applicable_technologies: ["PostgreSQL", "MySQL", "MongoDB", "Cassandra", "Redis Cluster"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 15
+    max_duration_minutes: 240
+    tags: ["database", "replication", "data-integrity"]
+
+  - category: "Replication Lag"
+    name: "Excessive Replication Lag"
+    description: "Replica falls significantly behind primary, causing stale reads and potential data loss on failover"
+    applicable_technologies: ["PostgreSQL", "MySQL", "MongoDB", "Cassandra", "Redis"]
+    typical_severities: ["SEV-3", "SEV-4"]
+    min_duration_minutes: 10
+    max_duration_minutes: 180
+    tags: ["database", "replication", "performance"]
+
+  - category: "Query Timeout"
+    name: "Long-running Query Timeout"
+    description: "Unoptimized query or missing index causes query timeout, blocking other operations"
+    applicable_technologies: ["PostgreSQL", "MySQL", "SQL Server", "Oracle", "MongoDB"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 5
+    max_duration_minutes: 90
+    tags: ["database", "performance"]
+
+  - category: "Pool Exhaustion"
+    name: "Connection Pool Exhaustion"
+    description: "All database connections in use, new requests queue or fail"
+    applicable_technologies: ["PostgreSQL", "MySQL", "HikariCP", "pgBouncer", "PgPool"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 5
+    max_duration_minutes: 60
+    tags: ["database", "resource-exhaustion"]
+
+  - category: "Schema Mismatch"
+    name: "Schema Migration Mismatch"
+    description: "Application code expects schema version different from database, causing runtime errors"
+    applicable_technologies: ["PostgreSQL", "MySQL", "Flyway", "Liquibase", "Alembic"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 15
+    max_duration_minutes: 120
+    tags: ["database", "deployment", "schema"]
+
+  - category: "Vacuum Blocking"
+    name: "Autovacuum Blocking"
+    description: "Long-running transaction prevents autovacuum, causing table bloat and performance degradation"
+    applicable_technologies: ["PostgreSQL"]
+    typical_severities: ["SEV-3", "SEV-4"]
+    min_duration_minutes: 30
+    max_duration_minutes: 240
+    tags: ["database", "maintenance", "performance"]
+
+  # Network failures
+  - category: "DNS Resolution Failure"
+    name: "DNS Resolution Failure"
+    description: "DNS queries fail or return stale records, preventing service discovery"
+    applicable_technologies: ["CoreDNS", "Route53", "Cloudflare", "Consul", "etcd"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 5
+    max_duration_minutes: 60
+    tags: ["network", "dns", "service-discovery"]
+
+  - category: "Network Partition"
+    name: "Network Partition"
+    description: "Network split isolates subset of nodes, causing consistency issues in distributed systems"
+    applicable_technologies: ["Kubernetes", "Consul", "etcd", "ZooKeeper", "Cassandra"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 10
+    max_duration_minutes: 180
+    tags: ["network", "distributed-systems", "consistency"]
+
+  - category: "Bandwidth Saturation"
+    name: "Network Bandwidth Saturation"
+    description: "Network link saturated by unexpected traffic (backup, replication, DDoS), causing latency spikes"
+    applicable_technologies: ["AWS VPC", "GCP VPC", "Azure VNet", "Direct Connect", "VPN"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 15
+    max_duration_minutes: 120
+    tags: ["network", "capacity", "performance"]
+
+  - category: "TLS Handshake Failure"
+    name: "TLS Certificate/Handshake Failure"
+    description: "Expired certificate, hostname mismatch, or cipher suite incompatibility breaks secure connections"
+    applicable_technologies: ["nginx", "Envoy", "HAProxy", "AWS ALB", "cert-manager", "Let's Encrypt"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 5
+    max_duration_minutes: 60
+    tags: ["network", "security", "tls"]
+
+  - category: "Load Balancer Misconfiguration"
+    name: "Load Balancer Misconfiguration"
+    description: "Incorrect health checks, routing rules, or target group configuration causes traffic blackholing"
+    applicable_technologies: ["AWS ALB/NLB", "GCP Load Balancer", "Azure Load Balancer", "nginx", "Envoy", "HAProxy"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 5
+    max_duration_minutes: 45
+    tags: ["network", "load-balancing", "configuration"]
+
+  # Messaging failures
+  - category: "Message Queue Backlog"
+    name: "Message Queue Backlog"
+    description: "Consumers cannot keep up with producers, causing queue growth and processing delays"
+    applicable_technologies: ["Kafka", "RabbitMQ", "AWS SQS", "Google Pub/Sub", "Azure Service Bus", "Redis Streams"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 15
+    max_duration_minutes: 240
+    tags: ["messaging", "backpressure", "performance"]
+
+  - category: "Duplicate Message Processing"
+    name: "Duplicate Message Processing"
+    description: "At-least-once delivery without idempotency causes duplicate processing and data corruption"
+    applicable_technologies: ["Kafka", "RabbitMQ", "AWS SQS", "Google Pub/Sub"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 10
+    max_duration_minutes: 120
+    tags: ["messaging", "idempotency", "data-integrity"]
+
+  - category: "Poison Message"
+    name: "Poison Message"
+    description: "Malformed or unprocessable message blocks queue processing, requiring manual intervention"
+    applicable_technologies: ["Kafka", "RabbitMQ", "AWS SQS", "Azure Service Bus"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 15
+    max_duration_minutes: 180
+    tags: ["messaging", "data-quality", "operations"]
+
+  - category: "Broker Unavailable"
+    name: "Message Broker Unavailable"
+    description: "Broker crash, OOM, or network issue makes messaging infrastructure unavailable"
+    applicable_technologies: ["Kafka", "RabbitMQ", "Redis", "NATS", "Pulsar"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 10
+    max_duration_minutes: 120
+    tags: ["messaging", "infrastructure", "availability"]
+
+  - category: "Consumer Lag"
+    name: "Consumer Group Lag"
+    description: "Consumer group falls behind partition assignment, increasing end-to-end latency"
+    applicable_technologies: ["Kafka", "Kinesis", "Pulsar"]
+    typical_severities: ["SEV-3", "SEV-4"]
+    min_duration_minutes: 10
+    max_duration_minutes: 180
+    tags: ["messaging", "performance", "monitoring"]
+
+  # Compute failures
+  - category: "OOMKilled"
+    name: "Container OOMKilled"
+    description: "Process exceeds memory limit, kernel kills container causing restart loop"
+    applicable_technologies: ["Kubernetes", "Docker", "containerd", "JVM", "Go", "Node.js", "Python"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 5
+    max_duration_minutes: 60
+    tags: ["compute", "memory", "kubernetes"]
+
+  - category: "CPU Throttling"
+    name: "CPU Throttling"
+    description: "Container exceeds CPU quota, CFS throttles causing latency spikes and timeouts"
+    applicable_technologies: ["Kubernetes", "Docker", "cgroups", "JVM", "Go"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 10
+    max_duration_minutes: 120
+    tags: ["compute", "cpu", "kubernetes", "performance"]
+
+  - category: "Thread Pool Exhaustion"
+    name: "Thread Pool Exhaustion"
+    description: "All worker threads blocked on I/O or locks, new requests queue indefinitely"
+    applicable_technologies: ["JVM", "Tomcat", "Jetty", "Netty", "Spring Boot", "Go", "Node.js", ".NET"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 5
+    max_duration_minutes: 90
+    tags: ["compute", "concurrency", "threading"]
+
+  - category: "GC Pressure"
+    name: "Garbage Collection Pressure"
+    description: "Frequent/long GC pauses cause request timeouts and increased latency"
+    applicable_technologies: ["JVM", "G1GC", "ZGC", "Shenandoah", "Go", ".NET", "Node.js"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 10
+    max_duration_minutes: 120
+    tags: ["compute", "memory", "gc", "performance"]
+
+  - category: "Container Restart Loop"
+    name: "Container Restart Loop (CrashLoopBackOff)"
+    description: "Container repeatedly crashes on startup due to config error, missing dependency, or bug"
+    applicable_technologies: ["Kubernetes", "Docker", "containerd", "systemd"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 5
+    max_duration_minutes: 60
+    tags: ["compute", "kubernetes", "deployment"]
+
+  # Cache failures
+  - category: "Cache Stampede"
+    name: "Cache Stampede (Thundering Herd)"
+    description: "Popular cache key expires, massive concurrent requests hit backend simultaneously"
+    applicable_technologies: ["Redis", "Memcached", "Hazelcast", "Caffeine", "Ehcache"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 5
+    max_duration_minutes: 60
+    tags: ["cache", "thundering-herd", "performance"]
+
+  - category: "Cache Miss Storm"
+    name: "Cache Miss Storm"
+    description: "Large-scale cache invalidation or cold start causes sustained high miss rate"
+    applicable_technologies: ["Redis", "Memcached", "CDN", "Varnish", "NGINX"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 15
+    max_duration_minutes: 180
+    tags: ["cache", "invalidation", "capacity"]
+
+  - category: "Stale Cache"
+    name: "Stale Cache Data"
+    description: "Cache not invalidated properly, serving outdated data to users"
+    applicable_technologies: ["Redis", "Memcached", "CDN", "Hazelcast", "Caffeine"]
+    typical_severities: ["SEV-3", "SEV-4"]
+    min_duration_minutes: 10
+    max_duration_minutes: 240
+    tags: ["cache", "data-integrity", "invalidation"]
+
+  - category: "Cache Eviction Storm"
+    name: "Cache Eviction Storm"
+    description: "LRU/LFU eviction removes hot keys under memory pressure, causing cascade of misses"
+    applicable_technologies: ["Redis", "Memcached", "Hazelcast"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 10
+    max_duration_minutes: 120
+    tags: ["cache", "memory", "eviction", "performance"]
+
+  # Deploy failures
+  - category: "Rollback Failure"
+    name: "Automated Rollback Failure"
+    description: "Deployment fails but automated rollback also fails, leaving system in broken state"
+    applicable_technologies: ["Kubernetes", "ArgoCD", "Flux", "Spinnaker", "Helm", "Terraform"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 15
+    max_duration_minutes: 120
+    tags: ["deploy", "rollback", "gitops"]
+
+  - category: "Canary Analysis Failure"
+    name: "Canary Analysis Failure"
+    description: "Canary deployment passes automated checks but has subtle regression detected post-deploy"
+    applicable_technologies: ["Kubernetes", "Argo Rollouts", "Flagger", "Istio", "Linkerd", "Spinnaker"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 20
+    max_duration_minutes: 180
+    tags: ["deploy", "canary", "progressive-delivery"]
+
+  - category: "Config Drift"
+    name: "Configuration Drift"
+    description: "Runtime configuration diverges from source-controlled config, causing unexpected behavior"
+    applicable_technologies: ["Kubernetes", "Consul", "etcd", "Spring Cloud Config", "AWS Parameter Store"]
+    typical_severities: ["SEV-2", "SEV-3"]
+    min_duration_minutes: 30
+    max_duration_minutes: 240
+    tags: ["deploy", "configuration", "gitops"]
+
+  - category: "Dependency Conflict"
+    name: "Transitive Dependency Conflict"
+    description: "Diamond dependency or version conflict causes runtime ClassNotFoundError/ModuleNotFoundError"
+    applicable_technologies: ["Maven", "Gradle", "npm", "pip", "Cargo", "Go Modules", "NuGet"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 10
+    max_duration_minutes: 90
+    tags: ["deploy", "dependencies", "build"]
+
+  - category: "Migration Failure"
+    name: "Database Migration Failure"
+    description: "Schema migration fails partway through, leaving database in inconsistent state"
+    applicable_technologies: ["Flyway", "Liquibase", "Alembic", "Django Migrations", "Entity Framework", "Prisma"]
+    typical_severities: ["SEV-1", "SEV-2"]
+    min_duration_minutes: 15
+    max_duration_minutes: 180
+    tags: ["deploy", "database", "schema", "migration"]

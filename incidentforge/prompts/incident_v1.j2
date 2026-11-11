@@ -1,0 +1,116 @@
+# Incident Generation Task
+
+## Context
+You are an expert Site Reliability Engineer writing a production incident post-mortem.
+Generate a realistic, detailed incident report in JSON format.
+
+**Architecture Profile:** {{ architecture_profile.value }}
+**Language:** {{ language.value }}
+**Style:** {{ style.value }}
+
+## Service Information
+**Service:** {{ service.name }}
+**Team:** {{ service.team }}
+**Region:** {{ service.region }}
+**Replicas:** {{ service.replicas }}
+**Language:** {{ service.language or 'N/A' }}
+**Framework:** {{ service.framework or 'N/A' }}
+
+**Technologies:**
+{% for tech in technologies %}
+- {{ tech }}
+{% endfor %}
+
+**SLO:**
+- Availability Target: {{ service.slo.availability_target }}
+- Latency P99: {{ service.slo.latency_p99_ms }}ms
+{% if service.slo.throughput_rps %}- Throughput: {{ service.slo.throughput_rps }} rps{% endif %}
+
+**Dependencies:**
+{% for dep in service.dependencies %}
+- {{ dep.target }} ({{ dep.traffic_percentage }}% traffic, critical: {{ dep.critical }})
+{% endfor %}
+
+## Failure Scenario
+**Failure Category:** {{ failure_category.value }}
+**Severity:** {{ severity.value }}
+
+## Requirements
+Generate a JSON object with the following structure (all fields required):
+
+```json
+{
+  "id": "INC-YYYY-NNNN",
+  "service": "{{ service.name }}",
+  "severity": "{{ severity.value }}",
+  "outage_duration_minutes": <integer > 0>,
+  "failure_category": "{{ failure_category.value }}",
+  "sla_impact": {
+    "availability_before": <float 0-1>,
+    "availability_after": <float 0-1>,
+    "p99_latency_ms": <integer > 0>
+  },
+  "root_cause_analysis": "<string, minimum 150 characters, must mention at least one technology from the service>",
+  "timeline": [
+    {
+      "timestamp": "ISO 8601 UTC",
+      "event": "<description>",
+      "source": "<component/service>",
+      "severity": "<SEV-1 to SEV-4 or null>"
+    }
+    // Minimum 5 events in strictly increasing chronological order
+  ],
+  "action_items": [
+    {
+      "action": "<specific action>",
+      "owner": "<team/person>",
+      "priority": "<P0-P3>"
+    }
+    // 2-8 items
+  ],
+  "metadata": {
+    "model": "{{ model }}",
+    "prompt_version": "1.0",
+    "seed": {{ seed }},
+    "generated_at": "ISO 8601 UTC",
+    "schema_version": "1.0",
+    "synthetic": true
+  }
+}
+```
+
+## Style Guidelines
+{% if style == Style.BLAMELESS_FORMAL %}
+- Use formal, blameless language
+- Focus on systemic factors, not individual errors
+- Comprehensive detail with full context
+{% elif style == Style.TERSE %}
+- Be concise and direct
+- Maximum 60% of detailed style length
+- Essential facts only, no fluff
+{% elif style == Style.DETAILED %}
+- Provide extensive detail
+- Include debugging steps, context, and thorough analysis
+- Comprehensive timeline with technical specifics
+{% endif %}
+
+## Language
+{% if language == Language.PT_BR %}
+Escreva todo o conteúdo textual em português do Brasil.
+Mantenha as chaves JSON em inglês.
+{% else %}
+Write all textual content in English.
+Keep JSON keys in English.
+{% endif %}
+
+## Critical Rules
+1. The `id` must follow pattern INC-YYYY-NNNN (use current year)
+2. `outage_duration_minutes` must be consistent with timeline (within 10%)
+3. Timeline must have at least 5 events in strictly increasing order
+4. Root cause must mention at least one technology from the service: {{ technologies | join(', ') }}
+5. Action items: 2-8 items, each with owner and priority P0-P3
+6. SLA impact: availability_before > availability_after, realistic latency
+7. All timestamps in ISO 8601 UTC format
+8. Output ONLY valid JSON, no markdown, no extra text
+
+Generate the incident now:

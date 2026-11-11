@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+
+# Distribution / Packaging
+*.egg-info/
+dist/
+build/
+
+# IncidentForge state
+.incidentforge/
+output/
+test_output/
+test_configs/
+
+# Debug/fix scripts
+fix_*.py
+debug_*.py
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PDFs (large files)
+*.pdf
+
+# Logs
+*.log
+
+# Local config
+configs/topology.yaml
+configs/failures.yaml

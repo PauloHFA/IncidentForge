@@ -1,0 +1,657 @@
+version: "1.0"
+services:
+  - name: "api-gateway"
+    technology:
+      - name: "nginx"
+        version: "1.25"
+        category: "network"
+      - name: "OpenResty"
+        version: "1.21"
+        category: "compute"
+      - name: "Lua"
+        version: "5.1"
+        category: "compute"
+    slo:
+      availability_target: 0.9999
+      latency_p99_ms: 50
+      throughput_rps: 10000
+    dependencies:
+      - target: "auth-service"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "rate-limiter"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "user-service"
+        traffic_percentage: 80.0
+        critical: false
+      - target: "order-service"
+        traffic_percentage: 60.0
+        critical: false
+    team: "platform-team"
+    region: "us-east-1"
+    replicas: 6
+    language: "Lua"
+    framework: "OpenResty"
+
+  - name: "auth-service"
+    technology:
+      - name: "Java"
+        version: "21"
+        category: "compute"
+      - name: "Spring Boot"
+        version: "3.2"
+        category: "compute"
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+      - name: "HikariCP"
+        version: "5.0"
+        category: "database"
+    slo:
+      availability_target: 0.9995
+      latency_p99_ms: 200
+      throughput_rps: 5000
+    dependencies:
+      - target: "user-db"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "session-cache"
+        traffic_percentage: 90.0
+        critical: false
+      - target: "token-service"
+        traffic_percentage: 100.0
+        critical: true
+    team: "identity-team"
+    region: "us-east-1"
+    replicas: 4
+    language: "Java"
+    framework: "Spring Boot"
+
+  - name: "user-service"
+    technology:
+      - name: "Go"
+        version: "1.22"
+        category: "compute"
+      - name: "gRPC"
+        version: "1.60"
+        category: "network"
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 150
+      throughput_rps: 3000
+    dependencies:
+      - target: "user-db"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "profile-cache"
+        traffic_percentage: 85.0
+        critical: false
+    team: "user-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "Go"
+    framework: "gRPC"
+
+  - name: "order-service"
+    technology:
+      - name: "Python"
+        version: "3.11"
+        category: "compute"
+      - name: "FastAPI"
+        version: "0.109"
+        category: "compute"
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+      - name: "Kafka"
+        version: "3.6"
+        category: "messaging"
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 300
+      throughput_rps: 2000
+    dependencies:
+      - target: "order-db"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "inventory-service"
+        traffic_percentage: 70.0
+        critical: true
+      - target: "payment-service"
+        traffic_percentage: 50.0
+        critical: true
+      - target: "event-bus"
+        traffic_percentage: 100.0
+        critical: false
+    team: "orders-team"
+    region: "us-east-1"
+    replicas: 4
+    language: "Python"
+    framework: "FastAPI"
+
+  - name: "inventory-service"
+    technology:
+      - name: "Java"
+        version: "21"
+        category: "compute"
+      - name: "Spring Boot"
+        version: "3.2"
+        category: "compute"
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 200
+      throughput_rps: 2500
+    dependencies:
+      - target: "inventory-db"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "stock-cache"
+        traffic_percentage: 90.0
+        critical: false
+    team: "inventory-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "Java"
+    framework: "Spring Boot"
+
+  - name: "payment-service"
+    technology:
+      - name: "Go"
+        version: "1.22"
+        category: "compute"
+      - name: "gRPC"
+        version: "1.60"
+        category: "network"
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+      - name: "Vault"
+        version: "1.15"
+        category: "security"
+    slo:
+      availability_target: 0.9999
+      latency_p99_ms: 500
+      throughput_rps: 1000
+    dependencies:
+      - target: "payment-db"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "fraud-detection"
+        traffic_percentage: 100.0
+        critical: false
+      - target: "external-gateway"
+        traffic_percentage: 100.0
+        critical: true
+    team: "payments-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "Go"
+    framework: "gRPC"
+
+  - name: "notification-service"
+    technology:
+      - name: "Node.js"
+        version: "20"
+        category: "compute"
+      - name: "TypeScript"
+        version: "5.3"
+        category: "compute"
+      - name: "Kafka"
+        version: "3.6"
+        category: "messaging"
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+    slo:
+      availability_target: 0.995
+      latency_p99_ms: 1000
+      throughput_rps: 5000
+    dependencies:
+      - target: "notification-db"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "email-provider"
+        traffic_percentage: 60.0
+        critical: false
+      - target: "sms-provider"
+        traffic_percentage: 30.0
+        critical: false
+      - target: "push-provider"
+        traffic_percentage: 80.0
+        critical: false
+      - target: "event-bus"
+        traffic_percentage: 100.0
+        critical: true
+    team: "notifications-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "TypeScript"
+    framework: "Node.js"
+
+  - name: "rate-limiter"
+    technology:
+      - name: "Go"
+        version: "1.22"
+        category: "compute"
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+      - name: "Lua"
+        version: "5.1"
+        category: "compute"
+    slo:
+      availability_target: 0.9999
+      latency_p99_ms: 10
+      throughput_rps: 50000
+    dependencies:
+      - target: "rate-limit-cache"
+        traffic_percentage: 100.0
+        critical: true
+    team: "platform-team"
+    region: "us-east-1"
+    replicas: 4
+    language: "Go"
+    framework: "Custom"
+
+  - name: "token-service"
+    technology:
+      - name: "Java"
+        version: "21"
+        category: "compute"
+      - name: "Spring Boot"
+        version: "3.2"
+        category: "compute"
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+      - name: "Vault"
+        version: "1.15"
+        category: "security"
+    slo:
+      availability_target: 0.9999
+      latency_p99_ms: 100
+      throughput_rps: 10000
+    dependencies:
+      - target: "token-cache"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "key-management"
+        traffic_percentage: 100.0
+        critical: true
+    team: "identity-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "Java"
+    framework: "Spring Boot"
+
+  - name: "fraud-detection"
+    technology:
+      - name: "Python"
+        version: "3.11"
+        category: "compute"
+      - name: "scikit-learn"
+        version: "1.4"
+        category: "compute"
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+    slo:
+      availability_target: 0.99
+      latency_p99_ms: 2000
+      throughput_rps: 500
+    dependencies:
+      - target: "fraud-db"
+        traffic_percentage: 100.0
+        critical: true
+      - target: "feature-store"
+        traffic_percentage: 100.0
+        critical: true
+    team: "risk-team"
+    region: "us-east-1"
+    replicas: 2
+    language: "Python"
+    framework: "scikit-learn"
+
+  - name: "event-bus"
+    technology:
+      - name: "Kafka"
+        version: "3.6"
+        category: "messaging"
+      - name: "ZooKeeper"
+        version: "3.9"
+        category: "messaging"
+      - name: "Schema Registry"
+        version: "7.6"
+        category: "messaging"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 100
+      throughput_rps: 100000
+    dependencies: []
+    team: "platform-team"
+    region: "us-east-1"
+    replicas: 6
+    language: "N/A"
+    framework: "Apache Kafka"
+
+  # Data stores (represented as services for dependency tracking)
+  - name: "user-db"
+    technology:
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+      - name: "Patroni"
+        version: "3.2"
+        category: "database"
+    slo:
+      availability_target: 0.9995
+      latency_p99_ms: 50
+      throughput_rps: 5000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "N/A"
+    framework: "PostgreSQL"
+
+  - name: "session-cache"
+    technology:
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+      - name: "Redis Cluster"
+        version: "7.2"
+        category: "cache"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 5
+      throughput_rps: 20000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 6
+    language: "N/A"
+    framework: "Redis"
+
+  - name: "profile-cache"
+    technology:
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 5
+      throughput_rps: 15000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "N/A"
+    framework: "Redis"
+
+  - name: "order-db"
+    technology:
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+      - name: "Patroni"
+        version: "3.2"
+        category: "database"
+    slo:
+      availability_target: 0.9995
+      latency_p99_ms: 50
+      throughput_rps: 3000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "N/A"
+    framework: "PostgreSQL"
+
+  - name: "inventory-db"
+    technology:
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 50
+      throughput_rps: 2500
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 2
+    language: "N/A"
+    framework: "PostgreSQL"
+
+  - name: "payment-db"
+    technology:
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+      - name: "Patroni"
+        version: "3.2"
+        category: "database"
+    slo:
+      availability_target: 0.9999
+      latency_p99_ms: 30
+      throughput_rps: 1000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "N/A"
+    framework: "PostgreSQL"
+
+  - name: "notification-db"
+    technology:
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+    slo:
+      availability_target: 0.995
+      latency_p99_ms: 100
+      throughput_rps: 5000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 2
+    language: "N/A"
+    framework: "PostgreSQL"
+
+  - name: "rate-limit-cache"
+    technology:
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+    slo:
+      availability_target: 0.9999
+      latency_p99_ms: 2
+      throughput_rps: 100000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 4
+    language: "N/A"
+    framework: "Redis"
+
+  - name: "token-cache"
+    technology:
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+    slo:
+      availability_target: 0.9999
+      latency_p99_ms: 5
+      throughput_rps: 20000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "N/A"
+    framework: "Redis"
+
+  - name: "stock-cache"
+    technology:
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 5
+      throughput_rps: 10000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "N/A"
+    framework: "Redis"
+
+  - name: "fraud-db"
+    technology:
+      - name: "PostgreSQL"
+        version: "16"
+        category: "database"
+    slo:
+      availability_target: 0.99
+      latency_p99_ms: 100
+      throughput_rps: 500
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 2
+    language: "N/A"
+    framework: "PostgreSQL"
+
+  - name: "feature-store"
+    technology:
+      - name: "Redis"
+        version: "7.2"
+        category: "cache"
+      - name: "Feast"
+        version: "0.35"
+        category: "compute"
+    slo:
+      availability_target: 0.99
+      latency_p99_ms: 50
+      throughput_rps: 1000
+    dependencies: []
+    team: "data-team"
+    region: "us-east-1"
+    replicas: 2
+    language: "N/A"
+    framework: "Feast"
+
+  - name: "key-management"
+    technology:
+      - name: "Vault"
+        version: "1.15"
+        category: "security"
+    slo:
+      availability_target: 0.9999
+      latency_p99_ms: 50
+      throughput_rps: 5000
+    dependencies: []
+    team: "security-team"
+    region: "us-east-1"
+    replicas: 3
+    language: "N/A"
+    framework: "HashiCorp Vault"
+
+  - name: "external-gateway"
+    technology:
+      - name: "Stripe"
+        version: "2024"
+        category: "network"
+      - name: "Adyen"
+        version: "2024"
+        category: "network"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 2000
+      throughput_rps: 1000
+    dependencies: []
+    team: "payments-team"
+    region: "us-east-1"
+    replicas: 1
+    language: "N/A"
+    framework: "External API"
+
+  - name: "email-provider"
+    technology:
+      - name: "SendGrid"
+        version: "2024"
+        category: "network"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 500
+      throughput_rps: 1000
+    dependencies: []
+    team: "notifications-team"
+    region: "us-east-1"
+    replicas: 1
+    language: "N/A"
+    framework: "External API"
+
+  - name: "sms-provider"
+    technology:
+      - name: "Twilio"
+        version: "2024"
+        category: "network"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 1000
+      throughput_rps: 500
+    dependencies: []
+    team: "notifications-team"
+    region: "us-east-1"
+    replicas: 1
+    language: "N/A"
+    framework: "External API"
+
+  - name: "push-provider"
+    technology:
+      - name: "Firebase"
+        version: "2024"
+        category: "network"
+    slo:
+      availability_target: 0.999
+      latency_p99_ms: 500
+      throughput_rps: 2000
+    dependencies: []
+    team: "notifications-team"
+    region: "us-east-1"
+    replicas: 1
+    language: "N/A"
+    framework: "External API"
+
+metadata:
+  description: "E-commerce microservices topology for IncidentForge"
+  environment: "production"
+  owner: "platform-team"
+  created_at: "2024-01-15T10:00:00Z"

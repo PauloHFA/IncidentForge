@@ -1,0 +1,27 @@
+# Correction Task
+
+The previous generation had validation errors. Please fix and regenerate.
+
+## Original Task
+**Service:** {{ task.service_name }}
+**Failure:** {{ task.failure_category.value }}
+**Severity:** {{ task.severity.value }}
+**Style:** {{ task.style.value }}
+**Language:** {{ task.language.value }}
+
+## Validation Error
+{{ error }}
+
+## Attempt
+This is attempt {{ attempt }} of {{ max_attempts }}.
+
+## Instructions
+Fix the specific validation error mentioned above. Common issues:
+- JSON parsing: Ensure valid JSON only, no markdown fences
+- Schema: All required fields present with correct types
+- Timeline: Minimum 5 events, strictly increasing timestamps
+- Duration: outage_duration_minutes within 10% of timeline span
+- Root cause: Must mention service technology
+- Action items: 2-8 items with owner and priority
+
+Output ONLY the corrected JSON:
